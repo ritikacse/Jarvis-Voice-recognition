@@ -1,182 +1,338 @@
-from flask import Flask, render_template, request, jsonify
+import streamlit as st
 import datetime
+import webbrowser
 
-app = Flask(__name__)
+
+# ==========================================
+# PAGE CONFIGURATION
+# ==========================================
+
+st.set_page_config(
+    page_title="Jarvis Voice Assistant",
+    page_icon="🤖",
+    layout="centered"
+)
 
 
-def jarvis_response(command):
-    command = command.lower().strip()
+# ==========================================
+# CSS
+# ==========================================
 
-    # -----------------------------
-    # GREETING
-    # -----------------------------
-    if "hello" in command or "hi" in command:
-        return {
-            "response": "Hello! I am Jarvis. How can I help you?",
-            "action": None
-        }
+st.markdown("""
+<style>
 
-    # -----------------------------
-    # TIME
-    # -----------------------------
-    elif "time" in command:
-        current_time = datetime.datetime.now().strftime("%I:%M %p")
+body {
+    background-color: #050b16;
+}
 
-        return {
-            "response": f"The current time is {current_time}.",
-            "action": None
-        }
+.main {
+    background-color: #050b16;
+}
 
-    # -----------------------------
-    # DATE
-    # -----------------------------
-    elif "date" in command or "today" in command:
-        current_date = datetime.datetime.now().strftime(
-            "%A, %d %B %Y"
+.jarvis-title {
+    text-align: center;
+    font-size: 60px;
+    font-weight: bold;
+    letter-spacing: 10px;
+    color: white;
+}
+
+.subtitle {
+    text-align: center;
+    color: #8fa8c9;
+    font-size: 18px;
+}
+
+.orb {
+    width: 150px;
+    height: 150px;
+    margin: 30px auto;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        #45c6ff,
+        #0879e8 45%,
+        #06244a 75%
+    );
+
+    box-shadow:
+        0 0 50px #0879e8;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.orb-text {
+    font-size: 60px;
+    font-weight: bold;
+    color: white;
+}
+
+.info {
+    padding: 20px;
+    border-radius: 15px;
+    background-color: #0c1728;
+    color: white;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
+# ==========================================
+# JARVIS HEADER
+# ==========================================
+
+st.markdown(
+    '<div class="orb"><div class="orb-text">J</div></div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="jarvis-title">JARVIS</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="subtitle">Python Voice Assistant</div>',
+    unsafe_allow_html=True
+)
+
+
+st.write("")
+
+
+# ==========================================
+# COMMAND INPUT
+# ==========================================
+
+command = st.text_input(
+    "🎤 Type your command",
+    placeholder="Example: What is the time?"
+)
+
+
+# ==========================================
+# PROCESS COMMAND
+# ==========================================
+
+if st.button("🚀 Ask Jarvis"):
+
+    if not command:
+
+        st.warning(
+            "Please enter a command."
         )
 
-        return {
-            "response": f"Today is {current_date}.",
-            "action": None
-        }
-
-    # -----------------------------
-    # YOUTUBE
-    # -----------------------------
-    elif "open youtube" in command:
-        return {
-            "response": "Opening YouTube.",
-            "action": "youtube"
-        }
-
-    # -----------------------------
-    # GOOGLE
-    # -----------------------------
-    elif "open google" in command:
-        return {
-            "response": "Opening Google.",
-            "action": "google"
-        }
-
-    # -----------------------------
-    # SEARCH
-    # -----------------------------
-    elif command.startswith("search"):
-        search_query = command.replace(
-            "search", "", 1
-        ).strip()
-
-        if search_query:
-            return {
-                "response": (
-                    f"Searching Google for {search_query}."
-                ),
-                "action": "search",
-                "value": search_query
-            }
-
-        return {
-            "response": "What would you like me to search for?",
-            "action": None
-        }
-
-    # -----------------------------
-    # HELP
-    # -----------------------------
-    elif "help" in command or "what can you do" in command:
-        return {
-            "response": (
-                "I can tell the time and date, "
-                "open Google and YouTube, "
-                "search the web, and respond to basic commands."
-            ),
-            "action": None
-        }
-
-    # -----------------------------
-    # ABOUT JARVIS
-    # -----------------------------
-    elif "who are you" in command:
-        return {
-            "response": (
-                "I am Jarvis, a Python based web voice assistant."
-            ),
-            "action": None
-        }
-
-    # -----------------------------
-    # THANK YOU
-    # -----------------------------
-    elif "thank you" in command or "thanks" in command:
-        return {
-            "response": "You're welcome!",
-            "action": None
-        }
-
-    # -----------------------------
-    # EXIT
-    # -----------------------------
-    elif (
-        "stop" in command
-        or "exit" in command
-        or "quit" in command
-        or "goodbye" in command
-    ):
-        return {
-            "response": "Goodbye! Have a nice day.",
-            "action": "stop"
-        }
-
-    # -----------------------------
-    # UNKNOWN COMMAND
-    # -----------------------------
     else:
-        return {
-            "response": (
-                "Sorry, I don't understand that command. "
-                "Say help to see what I can do."
-            ),
-            "action": None
-        }
+
+        query = command.lower().strip()
+
+
+        # ----------------------------------
+        # GREETING
+        # ----------------------------------
+
+        if (
+            "hello" in query
+            or "hi" in query
+        ):
+
+            response = (
+                "Hello! I am Jarvis. "
+                "How can I help you?"
+            )
+
+            st.success(response)
+
+
+        # ----------------------------------
+        # TIME
+        # ----------------------------------
+
+        elif "time" in query:
+
+            current_time = (
+                datetime.datetime.now()
+                .strftime("%I:%M %p")
+            )
+
+            response = (
+                f"The current time is "
+                f"{current_time}."
+            )
+
+            st.success(response)
+
+
+        # ----------------------------------
+        # DATE
+        # ----------------------------------
+
+        elif (
+            "date" in query
+            or "today" in query
+        ):
+
+            current_date = (
+                datetime.datetime.now()
+                .strftime("%A, %d %B %Y")
+            )
+
+            response = (
+                f"Today is {current_date}."
+            )
+
+            st.success(response)
+
+
+        # ----------------------------------
+        # YOUTUBE
+        # ----------------------------------
+
+        elif "open youtube" in query:
+
+            response = "Opening YouTube."
+
+            st.success(response)
+
+            st.markdown(
+                "[▶ Open YouTube](https://www.youtube.com)"
+            )
+
+
+        # ----------------------------------
+        # GOOGLE
+        # ----------------------------------
+
+        elif "open google" in query:
+
+            response = "Opening Google."
+
+            st.success(response)
+
+            st.markdown(
+                "[🌐 Open Google](https://www.google.com)"
+            )
+
+
+        # ----------------------------------
+        # SEARCH
+        # ----------------------------------
+
+        elif query.startswith("search"):
+
+            search_query = (
+                query
+                .replace("search", "", 1)
+                .strip()
+            )
+
+            if search_query:
+
+                response = (
+                    f"Searching Google for "
+                    f"{search_query}."
+                )
+
+                st.success(response)
+
+                url = (
+                    "https://www.google.com/search?q="
+                    + search_query.replace(" ", "+")
+                )
+
+                st.markdown(
+                    f"[🔎 Search Google]({url})"
+                )
+
+            else:
+
+                st.warning(
+                    "Please tell me what to search for."
+                )
+
+
+        # ----------------------------------
+        # WHO ARE YOU
+        # ----------------------------------
+
+        elif "who are you" in query:
+
+            response = (
+                "I am Jarvis, a Python-based "
+                "voice assistant created using Streamlit."
+            )
+
+            st.success(response)
+
+
+        # ----------------------------------
+        # HELP
+        # ----------------------------------
+
+        elif (
+            "help" in query
+            or "what can you do" in query
+        ):
+
+            st.info("""
+I can perform these commands:
+
+• Tell the current time
+• Tell today's date
+• Open YouTube
+• Open Google
+• Search Google
+• Respond to greetings
+• Tell you about Jarvis
+""")
+
+
+        # ----------------------------------
+        # EXIT
+        # ----------------------------------
+
+        elif (
+            "stop" in query
+            or "exit" in query
+            or "quit" in query
+        ):
+
+            st.success(
+                "Goodbye! Have a nice day."
+            )
+
+
+        # ----------------------------------
+        # UNKNOWN
+        # ----------------------------------
+
+        else:
+
+            st.warning(
+                "Sorry, I don't understand "
+                "that command yet."
+            )
 
 
 # ==========================================
-# HOME PAGE
+# COMMAND LIST
 # ==========================================
 
-@app.route("/")
-def home():
-    return render_template("index.html")
+st.markdown("---")
 
-
-# ==========================================
-# COMMAND API
-# ==========================================
-
-@app.route("/command", methods=["POST"])
-def command():
-
-    data = request.get_json(silent=True) or {}
-
-    user_command = data.get("command", "")
-
-    result = jarvis_response(user_command)
-
-    return jsonify(result)
-
-
-# ==========================================
-# START SERVER
-# ==========================================
-
-if __name__ == "__main__":
-
-    import os
-
-    port = int(os.environ.get("PORT", 5000))
-
-    app.run(
-        host="0.0.0.0",
-        port=port,
-        debug=False
-    )
+st.markdown(
+    '<div class="info">'
+    '<h3>Available Commands</h3>'
+    '<p>🕐 What is the time?</p>'
+    '<p>📅 What is today\'s date?</p>'
+    '<p>▶ Open YouTube</p>'
+    '<p>🌐 Open Google</p>'
+    '<p>🔎 Search Python tutorial</p>'
+    '<p>👋 Hello Jarvis</p>'
+    '<p>❓ Help</p>'
+    '</div>',
+    unsafe_allow_html=True
+)
