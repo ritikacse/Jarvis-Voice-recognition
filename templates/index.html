@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Jarvis Voice Assistant</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <!-- JARVIS LOGO -->
+
+    <div class="jarvis-circle">
+
+        <div class="jarvis-letter">
+            J
+        </div>
+
+    </div>
+
+
+    <!-- TITLE -->
+
+    <h1>JARVIS</h1>
+
+    <p class="subtitle">
+        Python Web Voice Assistant
+    </p>
+
+
+    <!-- MICROPHONE -->
+
+    <button id="micButton"
+            class="mic-button">
+
+        🎤
+
+    </button>
+
+
+    <p id="status">
+
+        Click the microphone and speak
+
+    </p>
+
+
+    <!-- CONVERSATION -->
+
+    <div class="conversation">
+
+        <div class="message">
+
+            <span class="label">
+                You
+            </span>
+
+            <p id="userText">
+                ---
+            </p>
+
+        </div>
+
+
+        <div class="message">
+
+            <span class="label">
+                Jarvis
+            </span>
+
+            <p id="jarvisText">
+                Hello! How can I help you?
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- COMMAND BUTTONS -->
+
+    <div class="quick-buttons">
+
+        <button
+            data-command="What is the time?">
+
+            🕐 Time
+
+        </button>
+
+
+        <button
+            data-command="What is today's date?">
+
+            📅 Date
+
+        </button>
+
+
+        <button
+            data-command="Open YouTube">
+
+            ▶ YouTube
+
+        </button>
+
+
+        <button
+            data-command="Open Google">
+
+            🌐 Google
+
+        </button>
+
+
+        <button
+            data-command="Help">
+
+            ❓ Help
+
+        </button>
+
+    </div>
+
+
+    <div class="commands">
+
+        <h3>
+            Available Commands
+        </h3>
+
+        <p>
+            🎤 "What is the time?"
+        </p>
+
+        <p>
+            📅 "What is today's date?"
+        </p>
+
+        <p>
+            ▶ "Open YouTube"
+        </p>
+
+        <p>
+            🌐 "Open Google"
+        </p>
+
+        <p>
+            🔎 "Search Python tutorial"
+        </p>
+
+        <p>
+            ❓ "Help"
+        </p>
+
+        <p>
+            👋 "Goodbye"
+        </p>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* ==========================================
+   ELEMENTS
+   ========================================== */
+
+const micButton =
+    document.getElementById("micButton");
+
+const statusText =
+    document.getElementById("status");
+
+const userText =
+    document.getElementById("userText");
+
+const jarvisText =
+    document.getElementById("jarvisText");
+
+
+/* ==========================================
+   SPEECH RECOGNITION
+   ========================================== */
+
+const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+
+let recognition = null;
+
+
+if (SpeechRecognition) {
+
+    recognition =
+        new SpeechRecognition();
+
+    recognition.lang =
+        "en-US";
+
+    recognition.continuous =
+        false;
+
+    recognition.interimResults =
+        false;
+
+
+    /* START */
+
+    recognition.onstart = function () {
+
+        micButton.classList.add(
+            "listening"
+        );
+
+        statusText.innerText =
+            "Listening...";
+
+    };
+
+
+    /* RESULT */
+
+    recognition.onresult =
+        function (event) {
+
+            const command =
+                event.results[0][0]
+                    .transcript;
+
+            userText.innerText =
+                command;
+
+            sendCommand(command);
+
+        };
+
+
+    /* ERROR */
+
+    recognition.onerror =
+        function (event) {
+
+            console.log(
+                "Speech error:",
+                event.error
+            );
+
+            statusText.innerText =
+                "Could not understand. Try again.";
+
+            micButton.classList.remove(
+                "listening"
+            );
+
+        };
+
+
+    /* END */
+
+    recognition.onend =
+        function () {
+
+            micButton.classList.remove(
+                "listening"
+            );
+
+        };
+
+}
+
+
+/* ==========================================
+   MICROPHONE BUTTON
+   ========================================== */
+
+micButton.addEventListener(
+    "click",
+    function () {
+
+        if (!recognition) {
+
+            statusText.innerText =
+                "Speech recognition is not supported. Please use Google Chrome.";
+
+            return;
+
+        }
+
+
+        try {
+
+            recognition.start();
+
+        }
+
+        catch (error) {
+
+            console.log(error);
+
+        }
+
+    }
+);
+
+
+/* ==========================================
+   SEND COMMAND TO PYTHON
+   ========================================== */
+
+async function sendCommand(command) {
+
+    statusText.innerText =
+        "Jarvis is thinking...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/command",
+                {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        command: command
+                    })
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        /* DISPLAY RESPONSE */
+
+        jarvisText.innerText =
+            data.response;
+
+
+        statusText.innerText =
+            "Click the microphone and speak";
+
+
+        /* SPEAK RESPONSE */
+
+        speak(data.response);
+
+
+        /* ACTION */
+
+        performAction(
+            data.action,
+            data.value
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        jarvisText.innerText =
+            "Sorry, something went wrong.";
+
+        statusText.innerText =
+            "Server error.";
+
+    }
+
+}
+
+
+/* ==========================================
+   ACTIONS
+   ========================================== */
+
+function performAction(
+    action,
+    value
+) {
+
+    if (action === "youtube") {
+
+        window.open(
+            "https://www.youtube.com",
+            "_blank"
+        );
+
+    }
+
+
+    else if (action === "google") {
+
+        window.open(
+            "https://www.google.com",
+            "_blank"
+        );
+
+    }
+
+
+    else if (
+        action === "search"
+        && value
+    ) {
+
+        const url =
+            "https://www.google.com/search?q="
+            + encodeURIComponent(value);
+
+        window.open(
+            url,
+            "_blank"
+        );
+
+    }
+
+}
+
+
+/* ==========================================
+   TEXT TO SPEECH
+   ========================================== */
+
+function speak(text) {
+
+    if (!window.speechSynthesis) {
+
+        return;
+
+    }
+
+
+    window.speechSynthesis.cancel();
+
+
+    const speech =
+        new SpeechSynthesisUtterance(
+            text
+        );
+
+
+    speech.lang =
+        "en-US";
+
+    speech.rate =
+        1;
+
+    speech.pitch =
+        1;
+
+
+    window.speechSynthesis.speak(
+        speech
+    );
+
+}
+
+
+/* ==========================================
+   QUICK BUTTONS
+   ========================================== */
+
+const buttons =
+    document.querySelectorAll(
+        "[data-command]"
+    );
+
+
+buttons.forEach(
+    function (button) {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                const command =
+                    this.getAttribute(
+                        "data-command"
+                    );
+
+
+                userText.innerText =
+                    command;
+
+
+                sendCommand(
+                    command
+                );
+
+            }
+        );
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
