@@ -1,11 +1,11 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import datetime
-import webbrowser
 
 
-# ==========================================
-# PAGE CONFIGURATION
-# ==========================================
+# ============================================
+# PAGE CONFIG
+# ============================================
 
 st.set_page_config(
     page_title="Jarvis Voice Assistant",
@@ -14,83 +14,114 @@ st.set_page_config(
 )
 
 
-# ==========================================
-# CSS
-# ==========================================
+# ============================================
+# CUSTOM CSS
+# ============================================
 
 st.markdown("""
 <style>
 
-body {
-    background-color: #050b16;
+.stApp {
+    background:
+        radial-gradient(
+            circle at top,
+            #123b68 0%,
+            #071321 40%,
+            #02060c 100%
+        );
+    color: white;
 }
 
-.main {
-    background-color: #050b16;
-}
-
-.jarvis-title {
+.main-title {
     text-align: center;
     font-size: 60px;
     font-weight: bold;
     letter-spacing: 10px;
     color: white;
+    margin-top: 10px;
 }
 
 .subtitle {
     text-align: center;
-    color: #8fa8c9;
+    color: #9bb4d3;
     font-size: 18px;
+    margin-bottom: 25px;
 }
 
-.orb {
-    width: 150px;
-    height: 150px;
-    margin: 30px auto;
+.jarvis-orb {
+    width: 160px;
+    height: 160px;
+    margin: 20px auto;
     border-radius: 50%;
-    background: radial-gradient(
-        circle,
-        #45c6ff,
-        #0879e8 45%,
-        #06244a 75%
-    );
-
-    box-shadow:
-        0 0 50px #0879e8;
 
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
+
+    background:
+        radial-gradient(
+            circle,
+            #55cfff 0%,
+            #0787f5 35%,
+            #064c91 65%,
+            #021326 100%
+        );
+
+    box-shadow:
+        0 0 30px #008cff,
+        0 0 70px #008cff55;
 }
 
-.orb-text {
-    font-size: 60px;
+.jarvis-letter {
+    width: 90px;
+    height: 90px;
+
+    border-radius: 50%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: #061426;
+
+    border: 2px solid #70d4ff;
+
+    font-size: 55px;
     font-weight: bold;
-    color: white;
 }
 
-.info {
+.info-box {
     padding: 20px;
+    margin-top: 20px;
+
     border-radius: 15px;
-    background-color: #0c1728;
-    color: white;
+
+    background: rgba(5, 15, 28, 0.9);
+
+    border: 1px solid #24415e;
+}
+
+.command {
+    color: #5bc4ff;
+    font-weight: bold;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 
-# ==========================================
+# ============================================
 # JARVIS HEADER
-# ==========================================
+# ============================================
+
+st.markdown("""
+<div class="jarvis-orb">
+    <div class="jarvis-letter">J</div>
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown(
-    '<div class="orb"><div class="orb-text">J</div></div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    '<div class="jarvis-title">JARVIS</div>',
+    '<div class="main-title">JARVIS</div>',
     unsafe_allow_html=True
 )
 
@@ -100,239 +131,588 @@ st.markdown(
 )
 
 
-st.write("")
+# ============================================
+# PYTHON COMMAND PROCESSOR
+# ============================================
+
+def process_command(command):
+
+    command = command.lower().strip()
+
+    # ----------------------------------------
+    # HELLO
+    # ----------------------------------------
+
+    if (
+        "hello" in command
+        or "hi jarvis" in command
+        or command == "hi"
+    ):
+
+        return "Hello! I am Jarvis. How can I help you?"
 
 
-# ==========================================
-# COMMAND INPUT
-# ==========================================
+    # ----------------------------------------
+    # TIME
+    # ----------------------------------------
 
-command = st.text_input(
-    "🎤 Type your command",
-    placeholder="Example: What is the time?"
-)
+    elif "time" in command:
 
-
-# ==========================================
-# PROCESS COMMAND
-# ==========================================
-
-if st.button("🚀 Ask Jarvis"):
-
-    if not command:
-
-        st.warning(
-            "Please enter a command."
+        current_time = datetime.datetime.now().strftime(
+            "%I:%M %p"
         )
+
+        return f"The current time is {current_time}."
+
+
+    # ----------------------------------------
+    # DATE
+    # ----------------------------------------
+
+    elif (
+        "date" in command
+        or "today" in command
+    ):
+
+        current_date = datetime.datetime.now().strftime(
+            "%A, %d %B %Y"
+        )
+
+        return f"Today is {current_date}."
+
+
+    # ----------------------------------------
+    # WHO ARE YOU
+    # ----------------------------------------
+
+    elif "who are you" in command:
+
+        return (
+            "I am Jarvis, a Python based "
+            "web voice assistant."
+        )
+
+
+    # ----------------------------------------
+    # HELP
+    # ----------------------------------------
+
+    elif (
+        "help" in command
+        or "what can you do" in command
+    ):
+
+        return (
+            "I can tell you the time and date, "
+            "open Google, open YouTube, "
+            "search Google, and respond to basic commands."
+        )
+
+
+    # ----------------------------------------
+    # THANK YOU
+    # ----------------------------------------
+
+    elif (
+        "thank you" in command
+        or "thanks" in command
+    ):
+
+        return "You're welcome!"
+
+
+    # ----------------------------------------
+    # GOODBYE
+    # ----------------------------------------
+
+    elif (
+        "goodbye" in command
+        or "exit" in command
+        or "quit" in command
+        or "stop" in command
+    ):
+
+        return "Goodbye! Have a nice day."
+
+
+    # ----------------------------------------
+    # UNKNOWN COMMAND
+    # ----------------------------------------
 
     else:
 
-        query = command.lower().strip()
+        return (
+            "Sorry, I don't understand that command. "
+            "Please say help to see the available commands."
+        )
 
 
-        # ----------------------------------
-        # GREETING
-        # ----------------------------------
+# ============================================
+# STREAMLIT SESSION STATE
+# ============================================
 
-        if (
-            "hello" in query
-            or "hi" in query
-        ):
+if "user_command" not in st.session_state:
 
-            response = (
-                "Hello! I am Jarvis. "
-                "How can I help you?"
-            )
-
-            st.success(response)
+    st.session_state.user_command = ""
 
 
-        # ----------------------------------
-        # TIME
-        # ----------------------------------
+if "jarvis_response" not in st.session_state:
 
-        elif "time" in query:
-
-            current_time = (
-                datetime.datetime.now()
-                .strftime("%I:%M %p")
-            )
-
-            response = (
-                f"The current time is "
-                f"{current_time}."
-            )
-
-            st.success(response)
+    st.session_state.jarvis_response = (
+        "Hello! Click the microphone and speak."
+    )
 
 
-        # ----------------------------------
-        # DATE
-        # ----------------------------------
+# ============================================
+# BROWSER VOICE ASSISTANT
+# ============================================
 
-        elif (
-            "date" in query
-            or "today" in query
-        ):
+components.html(
+    """
+<!DOCTYPE html>
 
-            current_date = (
-                datetime.datetime.now()
-                .strftime("%A, %d %B %Y")
-            )
+<html>
 
-            response = (
-                f"Today is {current_date}."
-            )
+<head>
 
-            st.success(response)
+<style>
 
+body {
+    background: transparent;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
 
-        # ----------------------------------
-        # YOUTUBE
-        # ----------------------------------
+button {
 
-        elif "open youtube" in query:
+    width: 100px;
+    height: 100px;
 
-            response = "Opening YouTube."
+    border-radius: 50%;
 
-            st.success(response)
+    border: none;
 
-            st.markdown(
-                "[▶ Open YouTube](https://www.youtube.com)"
-            )
+    background: #1488ed;
 
+    color: white;
 
-        # ----------------------------------
-        # GOOGLE
-        # ----------------------------------
+    font-size: 40px;
 
-        elif "open google" in query:
+    cursor: pointer;
 
-            response = "Opening Google."
+    box-shadow:
+        0 0 25px #1488ed;
 
-            st.success(response)
+}
 
-            st.markdown(
-                "[🌐 Open Google](https://www.google.com)"
-            )
+button:hover {
 
+    transform: scale(1.08);
 
-        # ----------------------------------
-        # SEARCH
-        # ----------------------------------
+}
 
-        elif query.startswith("search"):
+button.listening {
 
-            search_query = (
-                query
-                .replace("search", "", 1)
-                .strip()
-            )
+    background: #ef4050;
 
-            if search_query:
+    animation: pulse 1s infinite;
 
-                response = (
-                    f"Searching Google for "
-                    f"{search_query}."
-                )
+}
 
-                st.success(response)
+@keyframes pulse {
 
-                url = (
-                    "https://www.google.com/search?q="
-                    + search_query.replace(" ", "+")
-                )
+    50% {
 
-                st.markdown(
-                    f"[🔎 Search Google]({url})"
-                )
+        transform: scale(1.12);
 
-            else:
+    }
 
-                st.warning(
-                    "Please tell me what to search for."
-                )
+}
 
+#status {
 
-        # ----------------------------------
-        # WHO ARE YOU
-        # ----------------------------------
+    color: #9eb6d2;
 
-        elif "who are you" in query:
+    margin-top: 20px;
 
-            response = (
-                "I am Jarvis, a Python-based "
-                "voice assistant created using Streamlit."
-            )
+    font-size: 16px;
 
-            st.success(response)
+}
+
+#result {
+
+    color: white;
+
+    margin-top: 15px;
+
+    font-size: 18px;
+
+}
+
+</style>
+
+</head>
 
 
-        # ----------------------------------
-        # HELP
-        # ----------------------------------
-
-        elif (
-            "help" in query
-            or "what can you do" in query
-        ):
-
-            st.info("""
-I can perform these commands:
-
-• Tell the current time
-• Tell today's date
-• Open YouTube
-• Open Google
-• Search Google
-• Respond to greetings
-• Tell you about Jarvis
-""")
+<body>
 
 
-        # ----------------------------------
-        # EXIT
-        # ----------------------------------
+<button id="mic">
 
-        elif (
-            "stop" in query
-            or "exit" in query
-            or "quit" in query
-        ):
+🎤
 
-            st.success(
-                "Goodbye! Have a nice day."
-            )
+</button>
 
 
-        # ----------------------------------
-        # UNKNOWN
-        # ----------------------------------
+<div id="status">
 
-        else:
+Click microphone to speak
 
-            st.warning(
-                "Sorry, I don't understand "
-                "that command yet."
-            )
+</div>
 
 
-# ==========================================
-# COMMAND LIST
-# ==========================================
+<div id="result">
 
-st.markdown("---")
+</div>
+
+
+<script>
+
+
+const mic =
+    document.getElementById("mic");
+
+
+const status =
+    document.getElementById("status");
+
+
+const result =
+    document.getElementById("result");
+
+
+/*
+============================================
+BROWSER SPEECH RECOGNITION
+============================================
+*/
+
+
+const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+
+let recognition = null;
+
+
+if (!SpeechRecognition) {
+
+    status.innerText =
+        "Speech recognition is not supported. Use Google Chrome.";
+
+    mic.disabled = true;
+
+}
+
+
+else {
+
+    recognition =
+        new SpeechRecognition();
+
+
+    recognition.lang =
+        "en-US";
+
+
+    recognition.continuous =
+        false;
+
+
+    recognition.interimResults =
+        false;
+
+
+    /*
+    ========================================
+    START
+    ========================================
+    */
+
+
+    recognition.onstart = function() {
+
+        mic.classList.add(
+            "listening"
+        );
+
+        status.innerText =
+            "Listening... Speak now.";
+
+    };
+
+
+    /*
+    ========================================
+    RESULT
+    ========================================
+    */
+
+
+    recognition.onresult =
+        function(event) {
+
+            const command =
+                event.results[0][0]
+                    .transcript;
+
+
+            result.innerText =
+                "You said: " + command;
+
+
+            status.innerText =
+                "Command received";
+
+
+            /*
+            Send command to Streamlit
+            through URL query parameter.
+            */
+
+
+            const url =
+                new URL(
+                    window.parent.location.href
+                );
+
+
+            url.searchParams.set(
+                "voice_command",
+                command
+            );
+
+
+            window.parent.location.href =
+                url.toString();
+
+        };
+
+
+    /*
+    ========================================
+    ERROR
+    ========================================
+    */
+
+
+    recognition.onerror =
+        function(event) {
+
+            console.log(
+                event.error
+            );
+
+
+            status.innerText =
+                "Could not understand. Try again.";
+
+            mic.classList.remove(
+                "listening"
+            );
+
+        };
+
+
+    /*
+    ========================================
+    END
+    ========================================
+    */
+
+
+    recognition.onend =
+        function() {
+
+            mic.classList.remove(
+                "listening"
+            );
+
+        };
+
+
+    /*
+    ========================================
+    MICROPHONE CLICK
+    ========================================
+    */
+
+
+    mic.onclick =
+        function() {
+
+            try {
+
+                recognition.start();
+
+            }
+
+            catch(error) {
+
+                console.log(
+                    error
+                );
+
+            }
+
+        };
+
+}
+
+
+</script>
+
+</body>
+
+</html>
+""",
+    height=180
+)
+
+
+# ============================================
+# GET VOICE COMMAND
+# ============================================
+
+voice_command = st.query_params.get(
+    "voice_command",
+    ""
+)
+
+
+if voice_command:
+
+    st.session_state.user_command = voice_command
+
+    response = process_command(
+        voice_command
+    )
+
+    st.session_state.jarvis_response = response
+
+    # Clear URL parameter after processing
+    st.query_params.clear()
+
+
+# ============================================
+# DISPLAY CONVERSATION
+# ============================================
 
 st.markdown(
-    '<div class="info">'
-    '<h3>Available Commands</h3>'
-    '<p>🕐 What is the time?</p>'
-    '<p>📅 What is today\'s date?</p>'
-    '<p>▶ Open YouTube</p>'
-    '<p>🌐 Open Google</p>'
-    '<p>🔎 Search Python tutorial</p>'
-    '<p>👋 Hello Jarvis</p>'
-    '<p>❓ Help</p>'
+    '<div class="info-box">',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<span class="command">You:</span>',
+    unsafe_allow_html=True
+)
+
+st.write(
+    st.session_state.user_command
+    if st.session_state.user_command
+    else "---"
+)
+
+
+st.markdown(
+    '<span class="command">Jarvis:</span>',
+    unsafe_allow_html=True
+)
+
+st.write(
+    st.session_state.jarvis_response
+)
+
+st.markdown(
     '</div>',
     unsafe_allow_html=True
 )
+
+
+# ============================================
+# TEXT-TO-SPEECH
+# ============================================
+
+if st.session_state.jarvis_response:
+
+    speech_text = (
+        st.session_state.jarvis_response
+        .replace("'", "\\'")
+        .replace("\n", " ")
+    )
+
+    components.html(
+        f"""
+<script>
+
+const text =
+    '{speech_text}';
+
+if (
+    window.parent.speechSynthesis
+) {{
+
+    window.parent.speechSynthesis.cancel();
+
+    const speech =
+        new SpeechSynthesisUtterance(text);
+
+    speech.lang = "en-US";
+
+    speech.rate = 1;
+
+    speech.pitch = 1;
+
+    window.parent.speechSynthesis.speak(
+        speech
+    );
+
+}}
+
+</script>
+""",
+        height=0
+    )
+
+
+# ============================================
+# AVAILABLE COMMANDS
+# ============================================
+
+st.markdown("---")
+
+st.markdown("""
+<div class="info-box">
+
+<h3>🎤 Voice Commands</h3>
+
+<p>Say <b>"Hello Jarvis"</b></p>
+
+<p>Say <b>"What is the time?"</b></p>
+
+<p>Say <b>"What is today's date?"</b></p>
+
+<p>Say <b>"Who are you?"</b></p>
+
+<p>Say <b>"What can you do?"</b></p>
+
+<p>Say <b>"Help"</b></p>
+
+<p>Say <b>"Thank you"</b></p>
+
+<p>Say <b>"Goodbye"</b></p>
+
+</div>
+""", unsafe_allow_html=True)
