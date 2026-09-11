@@ -1,0 +1,422 @@
+* {
+    box-sizing: border-box;
+}
+
+
+body {
+
+    margin: 0;
+
+    min-height: 100vh;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    font-family: Arial, sans-serif;
+
+    color: white;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #102d52 0%,
+            #071321 45%,
+            #02060c 100%
+        );
+}
+
+
+.container {
+
+    width: 90%;
+
+    max-width: 700px;
+
+    text-align: center;
+
+    padding: 40px 25px;
+
+    background:
+        rgba(10, 20, 35, 0.92);
+
+    border:
+        1px solid
+        rgba(70, 160, 255, 0.25);
+
+    border-radius: 25px;
+
+    box-shadow:
+        0 0 50px
+        rgba(0, 140, 255, 0.2);
+}
+
+
+/* ==========================================
+   JARVIS CIRCLE
+   ========================================== */
+
+.jarvis-circle {
+
+    width: 150px;
+
+    height: 150px;
+
+    margin: auto;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            #35b8ff,
+            #0879e8 45%,
+            #073b76 70%,
+            #02101f 100%
+        );
+
+    box-shadow:
+        0 0 60px
+        rgba(0, 140, 255, 0.7);
+
+}
+
+
+.jarvis-letter {
+
+    width: 85px;
+
+    height: 85px;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    border-radius: 50%;
+
+    border:
+        2px solid
+        #65c8ff;
+
+    background: #061526;
+
+    color: #ffffff;
+
+    font-size: 55px;
+
+    font-weight: bold;
+
+}
+
+
+/* ==========================================
+   TITLE
+   ========================================== */
+
+h1 {
+
+    margin:
+        25px 0 5px;
+
+    font-size:
+        clamp(42px, 9vw, 65px);
+
+    letter-spacing:
+        10px;
+
+}
+
+
+.subtitle {
+
+    margin-top: 5px;
+
+    color: #8ca7c7;
+
+    font-size: 16px;
+
+}
+
+
+/* ==========================================
+   MICROPHONE
+   ========================================== */
+
+.mic-button {
+
+    width: 95px;
+
+    height: 95px;
+
+    margin-top: 25px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: #1485ed;
+
+    color: white;
+
+    font-size: 38px;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 0 30px
+        rgba(20, 133, 237, 0.6);
+
+    transition:
+        transform 0.2s;
+
+}
+
+
+.mic-button:hover {
+
+    transform:
+        scale(1.08);
+
+}
+
+
+.mic-button.listening {
+
+    background: #ef4050;
+
+    animation:
+        pulse 1s infinite;
+
+}
+
+
+@keyframes pulse {
+
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.12);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+
+}
+
+
+/* ==========================================
+   STATUS
+   ========================================== */
+
+#status {
+
+    color: #9bb1cd;
+
+    min-height: 24px;
+
+    margin:
+        20px 0;
+
+}
+
+
+/* ==========================================
+   CONVERSATION
+   ========================================== */
+
+.conversation {
+
+    text-align: left;
+
+    padding: 20px;
+
+    margin-top: 25px;
+
+    background:
+        rgba(3, 10, 20, 0.8);
+
+    border-radius: 15px;
+
+    border:
+        1px solid
+        #1d3048;
+
+}
+
+
+.message {
+
+    margin-bottom: 20px;
+
+}
+
+
+.message:last-child {
+
+    margin-bottom: 0;
+
+}
+
+
+.label {
+
+    color: #45adff;
+
+    font-weight: bold;
+
+}
+
+
+.message p {
+
+    margin:
+        7px 0 0;
+
+    line-height: 1.6;
+
+}
+
+
+/* ==========================================
+   QUICK BUTTONS
+   ========================================== */
+
+.quick-buttons {
+
+    display: flex;
+
+    justify-content: center;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    margin-top: 20px;
+
+}
+
+
+.quick-buttons button {
+
+    padding:
+        10px 16px;
+
+    border:
+        1px solid
+        #29425f;
+
+    border-radius:
+        20px;
+
+    background:
+        #0c1a2d;
+
+    color: white;
+
+    cursor: pointer;
+
+}
+
+
+.quick-buttons button:hover {
+
+    background:
+        #14304e;
+
+}
+
+
+/* ==========================================
+   COMMANDS
+   ========================================== */
+
+.commands {
+
+    margin-top: 25px;
+
+    padding: 20px;
+
+    text-align: left;
+
+    border-radius: 15px;
+
+    background:
+        rgba(7, 17, 30, 0.7);
+
+}
+
+
+.commands h3 {
+
+    margin-top: 0;
+
+    color: #45adff;
+
+}
+
+
+.commands p {
+
+    color: #b7c7db;
+
+    margin:
+        8px 0;
+
+}
+
+
+/* ==========================================
+   MOBILE
+   ========================================== */
+
+@media (max-width: 600px) {
+
+    .container {
+
+        padding:
+            30px 18px;
+
+    }
+
+
+    .jarvis-circle {
+
+        width: 120px;
+
+        height: 120px;
+
+    }
+
+
+    .jarvis-letter {
+
+        width: 70px;
+
+        height: 70px;
+
+        font-size: 42px;
+
+    }
+
+
+    h1 {
+
+        letter-spacing:
+            6px;
+
+    }
+
+}
