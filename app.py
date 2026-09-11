@@ -1,8 +1,8 @@
-```python
 import streamlit as st
 import streamlit.components.v1 as components
 import datetime
 import json
+import urllib.parse
 
 
 # ============================================================
@@ -17,108 +17,125 @@ st.set_page_config(
 
 
 # ============================================================
+# CUSTOM COMPONENT
+# ============================================================
+
+voice_component = components.declare_component(
+    "jarvis_voice",
+    path="jarvis_component"
+)
+
+
+# ============================================================
 # CSS
 # ============================================================
 
-st.markdown("""
-<style>
+st.markdown(
+    """
+    <style>
 
-.stApp {
-    background:
-        radial-gradient(
-            circle at top,
-            #123b68 0%,
-            #071321 45%,
-            #02060c 100%
-        );
-    color: white;
-}
+    .stApp {
+        background:
+            radial-gradient(
+                circle at top,
+                #123b68 0%,
+                #071321 45%,
+                #02060c 100%
+            );
 
-.main-title {
-    text-align: center;
-    font-size: 55px;
-    font-weight: bold;
-    letter-spacing: 10px;
-}
+        color: white;
+    }
 
-.subtitle {
-    text-align: center;
-    color: #9bb4d3;
-    font-size: 18px;
-}
+    .main-title {
+        text-align: center;
+        font-size: 55px;
+        font-weight: bold;
+        letter-spacing: 10px;
+    }
 
-.jarvis-orb {
-    width: 150px;
-    height: 150px;
-    margin: 25px auto;
+    .subtitle {
+        text-align: center;
+        color: #9bb4d3;
+        font-size: 18px;
+    }
 
-    border-radius: 50%;
+    .jarvis-orb {
+        width: 150px;
+        height: 150px;
+        margin: 25px auto;
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
+        border-radius: 50%;
 
-    background:
-        radial-gradient(
-            circle,
-            #55cfff,
-            #0787f5 40%,
-            #064c91 70%,
-            #021326
-        );
+        display: flex;
+        justify-content: center;
+        align-items: center;
 
-    box-shadow:
-        0 0 35px #008cff,
-        0 0 70px #008cff55;
-}
+        background:
+            radial-gradient(
+                circle,
+                #55cfff,
+                #0787f5 40%,
+                #064c91 70%,
+                #021326
+            );
 
-.jarvis-letter {
-    width: 85px;
-    height: 85px;
+        box-shadow:
+            0 0 35px #008cff,
+            0 0 70px #008cff55;
+    }
 
-    border-radius: 50%;
+    .jarvis-letter {
+        width: 85px;
+        height: 85px;
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
+        border-radius: 50%;
 
-    background: #061426;
+        display: flex;
+        justify-content: center;
+        align-items: center;
 
-    border: 2px solid #70d4ff;
+        background: #061426;
 
-    font-size: 50px;
-    font-weight: bold;
-}
+        border: 2px solid #70d4ff;
 
-.response-box {
-    margin-top: 20px;
-    padding: 20px;
+        font-size: 50px;
+        font-weight: bold;
+    }
 
-    border-radius: 15px;
+    .response-box {
+        margin-top: 20px;
+        padding: 20px;
 
-    background: rgba(5, 15, 28, 0.9);
+        border-radius: 15px;
 
-    border: 1px solid #24415e;
-}
+        background: rgba(5, 15, 28, 0.9);
 
-.label {
-    color: #55cfff;
-    font-weight: bold;
-}
+        border: 1px solid #24415e;
+    }
 
-</style>
-""", unsafe_allow_html=True)
+    .label {
+        color: #55cfff;
+        font-weight: bold;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # ============================================================
 # HEADER
 # ============================================================
 
-st.markdown("""
-<div class="jarvis-orb">
-    <div class="jarvis-letter">J</div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown(
+    """
+    <div class="jarvis-orb">
+        <div class="jarvis-letter">J</div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 st.markdown(
     '<div class="main-title">JARVIS</div>',
@@ -145,7 +162,10 @@ def process_command(command):
         or "hi jarvis" in command
         or command == "hi"
     ):
-        return "Hello! I am Jarvis. How can I help you?", None
+        return (
+            "Hello! I am Jarvis. How can I help you?",
+            None
+        )
 
     # Time
     if "time" in command:
@@ -198,9 +218,13 @@ def process_command(command):
 
         if search_query:
 
+            encoded_query = urllib.parse.quote_plus(
+                search_query
+            )
+
             url = (
                 "https://www.google.com/search?q="
-                + search_query.replace(" ", "+")
+                + encoded_query
             )
 
             return (
@@ -258,7 +282,7 @@ def process_command(command):
             None
         )
 
-    # Unknown
+    # Unknown command
     return (
         "Sorry, I don't understand that command. "
         "Say help to see what I can do.",
@@ -283,7 +307,7 @@ if "action" not in st.session_state:
 
 
 # ============================================================
-# BROWSER MICROPHONE
+# VOICE CONTROL
 # ============================================================
 
 st.markdown(
@@ -291,248 +315,50 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
-# The important part:
-# The browser performs speech recognition.
-# The result is sent back through Streamlit's component value.
-
-voice_command = components.html(
-    """
-    <!DOCTYPE html>
-
-    <html>
-
-    <head>
-
-    <style>
-
-    body {
-        margin: 0;
-        background: transparent;
-        text-align: center;
-        font-family: Arial;
-    }
-
-    #mic {
-
-        width: 100px;
-        height: 100px;
-
-        border: none;
-        border-radius: 50%;
-
-        background: #1488ed;
-
-        color: white;
-
-        font-size: 40px;
-
-        cursor: pointer;
-
-        box-shadow:
-            0 0 30px #1488ed;
-
-    }
-
-    #mic.listening {
-
-        background: #ef4050;
-
-        animation: pulse 1s infinite;
-
-    }
-
-    @keyframes pulse {
-
-        50% {
-            transform: scale(1.12);
-        }
-
-    }
-
-    #status {
-
-        color: #9eb6d2;
-
-        margin-top: 15px;
-
-    }
-
-    </style>
-
-    </head>
-
-    <body>
-
-    <button id="mic">🎤</button>
-
-    <div id="status">
-        Click microphone and speak
-    </div>
-
-
-    <script>
-
-    const mic =
-        document.getElementById("mic");
-
-    const status =
-        document.getElementById("status");
-
-
-    const Recognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
-
-
-    if (!Recognition) {
-
-        status.innerText =
-            "Speech recognition is not supported. Please use Google Chrome.";
-
-        mic.disabled = true;
-
-    }
-
-
-    else {
-
-        const recognition =
-            new Recognition();
-
-
-        recognition.lang =
-            "en-US";
-
-        recognition.continuous =
-            false;
-
-        recognition.interimResults =
-            false;
-
-
-        recognition.onstart =
-            function() {
-
-                mic.classList.add(
-                    "listening"
-                );
-
-                status.innerText =
-                    "Listening...";
-
-            };
-
-
-        recognition.onresult =
-            function(event) {
-
-                const text =
-                    event.results[0][0]
-                        .transcript;
-
-                status.innerText =
-                    "Command received: " + text;
-
-
-                /*
-                 Send result to Streamlit
-                 */
-
-                const data = {
-                    command: text
-                };
-
-
-                window.parent.postMessage(
-                    {
-                        type:
-                            "jarvis_command",
-
-                        data:
-                            data
-                    },
-                    "*"
-                );
-
-
-                /*
-                 Also store command locally.
-                 */
-
-                window.parent.document
-                    .dispatchEvent(
-                        new CustomEvent(
-                            "jarvisVoiceCommand",
-                            {
-                                detail: text
-                            }
-                        )
-                    );
-
-            };
-
-
-        recognition.onerror =
-            function(event) {
-
-                status.innerText =
-                    "Error: " + event.error;
-
-                mic.classList.remove(
-                    "listening"
-                );
-
-            };
-
-
-        recognition.onend =
-            function() {
-
-                mic.classList.remove(
-                    "listening"
-                );
-
-            };
-
-
-        mic.onclick =
-            function() {
-
-                try {
-
-                    recognition.start();
-
-                }
-
-                catch(error) {
-
-                    console.log(error);
-
-                }
-
-            };
-
-    }
-
-    </script>
-
-    </body>
-
-    </html>
-    """,
-    height=180
+voice_result = voice_component(
+    key="jarvis_voice_component"
 )
 
 
 # ============================================================
-# SIMPLE TEXT FALLBACK
+# PROCESS VOICE COMMAND
+# ============================================================
+
+if voice_result:
+
+    # Component returns a dictionary
+    if isinstance(voice_result, dict):
+
+        command = voice_result.get(
+            "command",
+            ""
+        )
+
+        if command:
+
+            response, action = process_command(
+                command
+            )
+
+            st.session_state.command = command
+
+            st.session_state.response = response
+
+            st.session_state.action = action
+
+            st.rerun()
+
+
+# ============================================================
+# TEXT FALLBACK
 # ============================================================
 
 st.markdown(
-    "<p style='text-align:center;color:#8fa8c9;'>"
-    "If voice recognition is unavailable, use the box below."
-    "</p>",
+    """
+    <p style='text-align:center;color:#8fa8c9;'>
+    If voice recognition is unavailable, use the box below.
+    </p>
+    """,
     unsafe_allow_html=True
 )
 
@@ -600,8 +426,18 @@ st.markdown(
 if st.session_state.action:
 
     st.markdown(
-        f"[🔗 {st.session_state.response}]"
-        f"({st.session_state.action})"
+        f"""
+        <a href="{st.session_state.action}"
+           target="_blank"
+           style="
+               color:#55cfff;
+               font-size:18px;
+               text-decoration:none;
+           ">
+           🔗 Open
+        </a>
+        """,
+        unsafe_allow_html=True
     )
 
 
@@ -617,42 +453,27 @@ components.html(
     f"""
     <script>
 
-    const text =
-        {speech_text};
+    const text = {speech_text};
 
+    if (
+        window.parent &&
+        window.parent.speechSynthesis
+    ) {{
 
-    function speakJarvis() {{
+        window.parent.speechSynthesis.cancel();
 
-        if (
-            window.parent &&
-            window.parent.speechSynthesis
-        ) {{
-
-            window.parent.speechSynthesis.cancel();
-
-
-            const speech =
-                new window.parent.SpeechSynthesisUtterance(
-                    text
-                );
-
-
-            speech.lang =
-                "en-US";
-
-            speech.rate =
-                1;
-
-            speech.pitch =
-                1;
-
-
-            window.parent.speechSynthesis.speak(
-                speech
+        const speech =
+            new window.parent.SpeechSynthesisUtterance(
+                text
             );
 
-        }}
+        speech.lang = "en-US";
+        speech.rate = 1;
+        speech.pitch = 1;
 
+        window.parent.speechSynthesis.speak(
+            speech
+        );
     }}
 
     </script>
@@ -662,54 +483,36 @@ components.html(
 
 
 # ============================================================
-# COMMANDS
+# AVAILABLE COMMANDS
 # ============================================================
 
 st.markdown("---")
 
-st.markdown("""
-<div class="response-box">
+st.markdown(
+    """
+    <div class="response-box">
 
-<h3>🎤 Available Voice Commands</h3>
+    <h3>🎤 Available Voice Commands</h3>
 
-<p>🗣️ "Hello Jarvis"</p>
+    <p>🗣️ "Hello Jarvis"</p>
 
-<p>🕐 "What is the time?"</p>
+    <p>🕐 "What is the time?"</p>
 
-<p>📅 "What is today's date?"</p>
+    <p>📅 "What is today's date?"</p>
 
-<p>🌐 "Open Google"</p>
+    <p>🌐 "Open Google"</p>
 
-<p>▶️ "Open YouTube"</p>
+    <p>▶️ "Open YouTube"</p>
 
-<p>🔎 "Search Python tutorial"</p>
+    <p>🔎 "Search Python tutorial"</p>
 
-<p>🤖 "Who are you?"</p>
+    <p>🤖 "Who are you?"</p>
 
-<p>❓ "What can you do?"</p>
+    <p>❓ "What can you do?"</p>
 
-<p>👋 "Goodbye"</p>
+    <p>👋 "Goodbye"</p>
 
-</div>
-""", unsafe_allow_html=True)
-```
-
-### But there is one limitation
-
-There is an important Streamlit limitation here: `components.html()` is an **iframe**, so browser speech recognition can run inside it, but sending the result back into the Python Streamlit execution reliably requires a proper custom Streamlit component. The code you uploaded currently tries to work around this with `window.parent.location.href`, which is why your current implementation is unreliable.
-
-So if your goal is **“click microphone → speak → Python receives command → Jarvis answers → browser speaks”**, the best solution is to make a small custom Streamlit component rather than continuing with `components.html()`.
-
-If you want the **actually working GitHub/Streamlit Cloud version**, I can give you that complete project with:
-
-```text
-app.py
-requirements.txt
-.gitignore
-README.md
-jarvis_component/
-    index.html
-    component.js
-```
-
-and the microphone-to-Python communication will work properly.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
