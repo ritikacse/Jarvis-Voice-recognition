@@ -1,16 +1,12 @@
 import streamlit as st
-import speech_recognition as sr
-from streamlit_mic_recorder import mic_recorder
+import streamlit.components.v1 as components
 import datetime
-import webbrowser
 import urllib.parse
-import tempfile
-import os
 
 
-# =========================================================
-# PAGE CONFIGURATION
-# =========================================================
+# ============================================================
+# PAGE CONFIG
+# ============================================================
 
 st.set_page_config(
     page_title="JARVIS Voice Assistant",
@@ -19,105 +15,107 @@ st.set_page_config(
 )
 
 
-# =========================================================
+# ============================================================
 # CSS
-# =========================================================
+# ============================================================
 
-st.markdown(
-    """
-    <style>
-        .stApp {
-            background: radial-gradient(
-                circle at top,
-                #071b33 0%,
-                #020812 45%,
-                #000000 100%
-            );
-            color: white;
-        }
+st.markdown("""
+<style>
 
-        .title {
-            text-align: center;
-            font-size: 48px;
-            font-weight: bold;
-            color: #00d9ff;
-            text-shadow: 0 0 20px #00d9ff;
-            margin-top: 20px;
-        }
+.stApp {
+    background:
+        radial-gradient(
+            circle at top,
+            #092b4c 0%,
+            #03111f 45%,
+            #000000 100%
+        );
+    color: white;
+}
 
-        .subtitle {
-            text-align: center;
-            color: #8edfff;
-            font-size: 18px;
-            margin-bottom: 30px;
-        }
+.title {
+    text-align: center;
+    font-size: 55px;
+    font-weight: bold;
+    color: #00d9ff;
+    text-shadow:
+        0 0 10px #00d9ff,
+        0 0 30px #008cff,
+        0 0 50px #0066ff;
+}
 
-        .orb {
-            width: 180px;
-            height: 180px;
-            margin: 20px auto;
-            border-radius: 50%;
-            background: radial-gradient(
-                circle,
-                #00ffff 0%,
-                #0077ff 35%,
-                #001f4d 70%,
-                #000000 100%
-            );
-            box-shadow:
-                0 0 25px #00d9ff,
-                0 0 60px #0077ff,
-                0 0 100px #003cff;
-            animation: pulse 2s infinite;
-        }
+.subtitle {
+    text-align: center;
+    color: #9beaff;
+    font-size: 18px;
+    margin-bottom: 30px;
+}
 
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                box-shadow:
-                    0 0 25px #00d9ff,
-                    0 0 60px #0077ff;
-            }
+.orb {
+    width: 180px;
+    height: 180px;
+    margin: 30px auto;
+    border-radius: 50%;
 
-            50% {
-                transform: scale(1.08);
-                box-shadow:
-                    0 0 40px #00d9ff,
-                    0 0 90px #0077ff;
-            }
+    background:
+        radial-gradient(
+            circle,
+            #ffffff 0%,
+            #00eaff 15%,
+            #0077ff 40%,
+            #00244d 70%,
+            #000000 100%
+        );
 
-            100% {
-                transform: scale(1);
-                box-shadow:
-                    0 0 25px #00d9ff,
-                    0 0 60px #0077ff;
-            }
-        }
+    box-shadow:
+        0 0 20px #00eaff,
+        0 0 50px #008cff,
+        0 0 90px #0055ff;
 
-        .response-box {
-            background: rgba(0, 20, 40, 0.8);
-            border: 1px solid #00d9ff;
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
-        }
+    animation: pulse 2s infinite;
+}
 
-        .command-box {
-            background: rgba(0, 20, 40, 0.6);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+@keyframes pulse {
+
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.08);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.box {
+    background: rgba(0, 20, 40, 0.8);
+    border: 1px solid #00d9ff;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.25);
+}
+
+.command {
+    color: #8eeaff;
+    font-size: 18px;
+}
+
+.response {
+    color: white;
+    font-size: 20px;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 
-# =========================================================
-# JARVIS HEADER
-# =========================================================
+# ============================================================
+# HEADER
+# ============================================================
 
 st.markdown(
     '<div class="title">J.A.R.V.I.S</div>',
@@ -135,357 +133,543 @@ st.markdown(
 )
 
 
-# =========================================================
+# ============================================================
 # SESSION STATE
-# =========================================================
+# ============================================================
 
 if "command" not in st.session_state:
     st.session_state.command = ""
 
 if "response" not in st.session_state:
-    st.session_state.response = "Hello! I am JARVIS. How can I help you?"
+    st.session_state.response = (
+        "Hello! I am JARVIS. How can I help you?"
+    )
 
-if "action_url" not in st.session_state:
-    st.session_state.action_url = None
+if "url" not in st.session_state:
+    st.session_state.url = ""
 
 
-# =========================================================
-# COMMAND PROCESSING
-# =========================================================
+# ============================================================
+# COMMAND PROCESSOR
+# ============================================================
 
 def process_command(command):
 
     command = command.lower().strip()
 
     if not command:
-        return "I didn't hear a command.", None
+        return "I didn't hear anything.", ""
 
-    # Greetings
+    # ----------------------------------------
+    # GREETING
+    # ----------------------------------------
+
     if any(word in command for word in [
         "hello",
-        "hi",
-        "hey",
-        "good morning",
-        "good afternoon",
-        "good evening"
+        "hi jarvis",
+        "hey jarvis",
+        "hey"
     ]):
-        return "Hello! How can I help you?", None
+        return "Hello! How can I help you?", ""
 
-    # Time
+    # ----------------------------------------
+    # TIME
+    # ----------------------------------------
+
     if "time" in command:
-        current_time = datetime.datetime.now().strftime("%I:%M %p")
-        return f"The current time is {current_time}.", None
 
-    # Date
+        current_time = datetime.datetime.now().strftime(
+            "%I:%M %p"
+        )
+
+        return (
+            f"The current time is {current_time}.",
+            ""
+        )
+
+    # ----------------------------------------
+    # DATE
+    # ----------------------------------------
+
     if "date" in command or "today" in command:
-        current_date = datetime.datetime.now().strftime("%A, %d %B %Y")
-        return f"Today is {current_date}.", None
 
-    # Open Google
+        current_date = datetime.datetime.now().strftime(
+            "%A, %d %B %Y"
+        )
+
+        return (
+            f"Today is {current_date}.",
+            ""
+        )
+
+    # ----------------------------------------
+    # GOOGLE
+    # ----------------------------------------
+
     if "open google" in command:
-        return "Opening Google.", "https://www.google.com"
 
-    # Open YouTube
+        return (
+            "Opening Google.",
+            "https://www.google.com"
+        )
+
+    # ----------------------------------------
+    # YOUTUBE
+    # ----------------------------------------
+
     if "open youtube" in command:
-        return "Opening YouTube.", "https://www.youtube.com"
 
-    # Open Gmail
+        return (
+            "Opening YouTube.",
+            "https://www.youtube.com"
+        )
+
+    # ----------------------------------------
+    # GMAIL
+    # ----------------------------------------
+
     if "open gmail" in command:
-        return "Opening Gmail.", "https://mail.google.com"
 
-    # Search Google
+        return (
+            "Opening Gmail.",
+            "https://mail.google.com"
+        )
+
+    # ----------------------------------------
+    # SEARCH
+    # ----------------------------------------
+
     if command.startswith("search "):
-        search_query = command.replace("search ", "", 1).strip()
 
-        if search_query:
-            encoded_query = urllib.parse.quote(search_query)
-            url = f"https://www.google.com/search?q={encoded_query}"
+        query = command[7:].strip()
 
-            return f"Searching Google for {search_query}.", url
+        if query:
 
-    # Search for something
+            encoded = urllib.parse.quote(query)
+
+            url = (
+                "https://www.google.com/search?q="
+                + encoded
+            )
+
+            return (
+                f"Searching Google for {query}.",
+                url
+            )
+
+    # ----------------------------------------
+    # SEARCH FOR
+    # ----------------------------------------
+
     if "search for " in command:
-        search_query = command.split("search for ", 1)[1].strip()
 
-        if search_query:
-            encoded_query = urllib.parse.quote(search_query)
-            url = f"https://www.google.com/search?q={encoded_query}"
+        query = command.split(
+            "search for ",
+            1
+        )[1].strip()
 
-            return f"Searching for {search_query}.", url
+        if query:
 
-    # Who are you?
-    if "who are you" in command or "what are you" in command:
+            encoded = urllib.parse.quote(query)
+
+            url = (
+                "https://www.google.com/search?q="
+                + encoded
+            )
+
+            return (
+                f"Searching for {query}.",
+                url
+            )
+
+    # ----------------------------------------
+    # WHO ARE YOU
+    # ----------------------------------------
+
+    if (
+        "who are you" in command
+        or "what are you" in command
+    ):
+
         return (
-            "I am JARVIS, your virtual voice assistant. "
-            "I can understand commands and help you perform simple tasks."
-        ), None
+            "I am JARVIS, your virtual voice assistant.",
+            ""
+        )
 
-    # Help
+    # ----------------------------------------
+    # HELP
+    # ----------------------------------------
+
     if "help" in command:
+
         return (
-            "You can ask me for the time, date, open Google, "
-            "open YouTube, search Google, or ask who I am."
-        ), None
+            "You can ask me for the time, date, "
+            "open Google, open YouTube, open Gmail, "
+            "or search Google.",
+            ""
+        )
 
-    # Thanks
-    if any(word in command for word in [
-        "thank you",
-        "thanks"
-    ]):
-        return "You're welcome!", None
+    # ----------------------------------------
+    # THANK YOU
+    # ----------------------------------------
 
-    # Goodbye
-    if any(word in command for word in [
-        "goodbye",
-        "bye",
-        "exit",
-        "quit"
-    ]):
-        return "Goodbye! Have a great day.", None
+    if (
+        "thank you" in command
+        or "thanks" in command
+    ):
 
-    # Unknown command
+        return (
+            "You're welcome!",
+            ""
+        )
+
+    # ----------------------------------------
+    # GOODBYE
+    # ----------------------------------------
+
+    if (
+        "goodbye" in command
+        or command == "bye"
+        or "exit" in command
+    ):
+
+        return (
+            "Goodbye! Have a great day.",
+            ""
+        )
+
+    # ----------------------------------------
+    # UNKNOWN
+    # ----------------------------------------
+
     return (
-        f"I heard '{command}', but I don't know how to perform "
-        "that command yet."
-    ), None
+        f"I heard '{command}', "
+        "but I don't know that command yet.",
+        ""
+    )
 
 
-# =========================================================
-# SPEECH TO TEXT
-# =========================================================
+# ============================================================
+# PROCESS COMMAND FROM BROWSER
+# ============================================================
 
-def convert_speech_to_text(audio_bytes):
+def handle_command(command):
 
-    recognizer = sr.Recognizer()
+    response, url = process_command(command)
 
-    temporary_file = None
-
-    try:
-
-        # Create temporary WAV file
-        with tempfile.NamedTemporaryFile(
-            suffix=".wav",
-            delete=False
-        ) as temp_audio:
-
-            temp_audio.write(audio_bytes)
-            temporary_file = temp_audio.name
-
-        # Read audio file
-        with sr.AudioFile(temporary_file) as source:
-            audio = recognizer.record(source)
-
-        # Google Speech Recognition
-        text = recognizer.recognize_google(audio)
-
-        return text
-
-    except sr.UnknownValueError:
-        return None
-
-    except sr.RequestError as error:
-        st.error(
-            f"Speech recognition service error: {error}"
-        )
-        return None
-
-    except Exception as error:
-        st.error(
-            f"Audio processing error: {error}"
-        )
-        return None
-
-    finally:
-
-        if temporary_file and os.path.exists(temporary_file):
-            try:
-                os.remove(temporary_file)
-            except Exception:
-                pass
+    st.session_state.command = command
+    st.session_state.response = response
+    st.session_state.url = url
 
 
-# =========================================================
-# MICROPHONE
-# =========================================================
+# ============================================================
+# TEXT INPUT
+# ============================================================
 
-st.subheader("🎤 Voice Command")
-
-st.write(
-    "Click the button below, speak your command, "
-    "and then stop recording."
-)
-
-audio = mic_recorder(
-    start_prompt="🎤 Start Speaking",
-    stop_prompt="⏹️ Stop Recording",
-    just_once=True,
-    use_container_width=True,
-    format="wav"
-)
-
-
-# =========================================================
-# PROCESS MICROPHONE AUDIO
-# =========================================================
-
-if audio:
-
-    audio_bytes = audio.get("bytes")
-
-    if audio_bytes:
-
-        with st.spinner("🎧 Listening and processing..."):
-
-            recognized_text = convert_speech_to_text(
-                audio_bytes
-            )
-
-        if recognized_text:
-
-            st.session_state.command = recognized_text
-
-            response, action_url = process_command(
-                recognized_text
-            )
-
-            st.session_state.response = response
-            st.session_state.action_url = action_url
-
-            st.rerun()
-
-        else:
-
-            st.warning(
-                "Sorry, I could not understand your voice. "
-                "Please try speaking again."
-            )
-
-
-# =========================================================
-# TEXT INPUT FALLBACK
-# =========================================================
-
-st.subheader("⌨️ Text Command")
+st.subheader("⌨️ Type a command")
 
 text_command = st.text_input(
-    "Type a command:",
-    placeholder="Example: What is the time?"
+    "Command",
+    placeholder="Example: What is the time?",
+    label_visibility="collapsed"
 )
 
-
-if st.button("Send Command", use_container_width=True):
+if st.button(
+    "Send Command",
+    use_container_width=True
+):
 
     if text_command.strip():
 
-        st.session_state.command = text_command
-
-        response, action_url = process_command(
-            text_command
-        )
-
-        st.session_state.response = response
-        st.session_state.action_url = action_url
+        handle_command(text_command)
 
         st.rerun()
 
 
-# =========================================================
-# DISPLAY COMMAND
-# =========================================================
+# ============================================================
+# BROWSER VOICE RECOGNITION
+# ============================================================
 
-if st.session_state.command:
+st.subheader("🎤 Voice Command")
 
-    st.markdown(
-        f"""
-        <div class="command-box">
-            <b>🎤 You said:</b><br>
-            {st.session_state.command}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+components.html(
+    """
+    <style>
+
+    body {
+        background: transparent;
+        font-family: Arial, sans-serif;
+        text-align: center;
+    }
+
+    #micButton {
+        background: #0077ff;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 15px 30px;
+        font-size: 18px;
+        cursor: pointer;
+        box-shadow: 0 0 20px #0077ff;
+    }
+
+    #micButton:hover {
+        background: #00aaff;
+    }
+
+    #status {
+        color: #8eeaff;
+        margin-top: 15px;
+        font-size: 16px;
+    }
+
+    </style>
+
+    <button id="micButton">
+        🎤 Start Speaking
+    </button>
+
+    <div id="status">
+        Click the button and speak
+    </div>
+
+    <script>
+
+    const button = document.getElementById("micButton");
+    const status = document.getElementById("status");
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+
+        status.innerHTML =
+            "❌ Speech recognition is not supported. " +
+            "Please use Google Chrome.";
+
+        button.disabled = true;
+
+    } else {
+
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = "en-US";
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        button.onclick = function() {
+
+            status.innerHTML =
+                "🎧 Listening... Speak now";
+
+            button.innerHTML =
+                "⏹️ Listening...";
+
+            recognition.start();
+        };
+
+        recognition.onresult = function(event) {
+
+            const text =
+                event.results[0][0].transcript;
+
+            status.innerHTML =
+                "You said: " + text;
+
+            button.innerHTML =
+                "🎤 Start Speaking";
+
+            /*
+             * Send the recognized command back
+             * to the Streamlit parent page.
+             */
+
+            window.parent.postMessage(
+                {
+                    type: "JARVIS_VOICE_COMMAND",
+                    command: text
+                },
+                "*"
+            );
+        };
+
+        recognition.onerror = function(event) {
+
+            status.innerHTML =
+                "❌ Error: " + event.error;
+
+            button.innerHTML =
+                "🎤 Start Speaking";
+        };
+
+        recognition.onend = function() {
+
+            button.innerHTML =
+                "🎤 Start Speaking";
+        };
+    }
+
+    </script>
+    """,
+    height=180
+)
 
 
-# =========================================================
-# DISPLAY RESPONSE
-# =========================================================
+# ============================================================
+# VOICE MESSAGE RECEIVER
+# ============================================================
+
+components.html(
+    """
+    <script>
+
+    window.addEventListener(
+        "message",
+        function(event) {
+
+            if (
+                event.data &&
+                event.data.type ===
+                "JARVIS_VOICE_COMMAND"
+            ) {
+
+                const command =
+                    event.data.command;
+
+                /*
+                 * Store command temporarily
+                 * in browser localStorage.
+                 */
+
+                localStorage.setItem(
+                    "jarvis_command",
+                    command
+                );
+
+                /*
+                 * Reload Streamlit so Python
+                 * can process the command.
+                 */
+
+                window.parent.location.reload();
+            }
+
+        }
+    );
+
+    </script>
+    """,
+    height=0
+)
+
+
+# ============================================================
+# RESPONSE
+# ============================================================
 
 st.markdown(
     f"""
-    <div class="response-box">
-        <b>🤖 JARVIS:</b><br><br>
-        {st.session_state.response}
+    <div class="box">
+
+        <div class="command">
+            <b>🎤 You said:</b><br>
+            {st.session_state.command or "Waiting for command..."}
+        </div>
+
+        <br>
+
+        <div class="response">
+            <b>🤖 JARVIS:</b><br><br>
+            {st.session_state.response}
+        </div>
+
     </div>
     """,
     unsafe_allow_html=True
 )
 
 
-# =========================================================
-# ACTION LINK
-# =========================================================
+# ============================================================
+# OPEN LINK
+# ============================================================
 
-if st.session_state.action_url:
+if st.session_state.url:
 
     st.link_button(
         "🔗 Open",
-        st.session_state.action_url,
+        st.session_state.url,
         use_container_width=True
     )
 
 
-# =========================================================
-# TEXT-TO-SPEECH
-# =========================================================
+# ============================================================
+# TEXT TO SPEECH
+# ============================================================
 
-if st.session_state.response:
+response_text = st.session_state.response
 
-    speech_text = st.session_state.response.replace(
-        "'", "\\'"
-    )
+safe_text = (
+    response_text
+    .replace("\\", "\\\\")
+    .replace("'", "\\'")
+    .replace("\n", " ")
+)
 
-    st.components.v1.html(
-        f"""
-        <script>
-            const text = '{speech_text}';
+components.html(
+    f"""
+    <script>
 
-            if (window.speechSynthesis) {{
-                window.speechSynthesis.cancel();
+    const responseText = '{safe_text}';
 
-                const utterance =
-                    new SpeechSynthesisUtterance(text);
+    if (
+        responseText &&
+        responseText !== "Hello! I am JARVIS. How can I help you?"
+    ) {{
 
-                utterance.rate = 1.0;
-                utterance.pitch = 1.0;
-                utterance.volume = 1.0;
+        if (window.speechSynthesis) {{
 
-                window.speechSynthesis.speak(utterance);
-            }}
-        </script>
-        """,
-        height=0
-    )
+            window.speechSynthesis.cancel();
+
+            const speech =
+                new SpeechSynthesisUtterance(
+                    responseText
+                );
+
+            speech.lang = "en-US";
+            speech.rate = 1.0;
+            speech.pitch = 1.0;
+            speech.volume = 1.0;
+
+            window.speechSynthesis.speak(speech);
+        }}
+    }}
+
+    </script>
+    """,
+    height=0
+)
 
 
-# =========================================================
+# ============================================================
 # AVAILABLE COMMANDS
-# =========================================================
+# ============================================================
 
 with st.expander("📋 Available Commands"):
 
-    st.markdown(
-        """
-        - **Hello**
-        - **What is the time?**
-        - **What is today's date?**
-        - **Open Google**
-        - **Open YouTube**
-        - **Open Gmail**
-        - **Search Python tutorials**
-        - **Search for artificial intelligence**
-        - **Who are you?**
-        - **Help**
-        - **Thank you**
-        - **Goodbye**
-        """
-    )
+    st.markdown("""
+    **Voice commands you can try:**
+
+    - 🎤 Hello Jarvis
+    - 🕐 What is the time?
+    - 📅 What is today's date?
+    - 🌐 Open Google
+    - ▶️ Open YouTube
+    - 📧 Open Gmail
+    - 🔎 Search Python tutorials
+    - 🔎 Search for artificial intelligence
+    - 🤖 Who are you?
+    - ❓ Help
+    - 🙏 Thank you
+    - 👋 Goodbye
+    """)
